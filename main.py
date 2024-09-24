@@ -43,13 +43,12 @@ async def get_characters():
     characters = await get_marvel_characters()
     return schemas.MarvelCharacterResponse(**characters['data'])
 
-@app.post("/characters/", response_model=schemas.CharacterData)  # Asegúrate de que este esquema esté definido en schemas.py
+@app.post("/characters/", response_model=schemas.CharacterData)  
 def create_character(character: schemas.CharacterData, db: Session = Depends(get_db)):
-    db_character = models.Character(**character.dict())  # Crear el modelo de SQLAlchemy
+    db_character = models.Character(**character.dict()) 
     db.add(db_character)
     db.commit()
-    db.refresh(db_character)  # Refresca la instancia con los datos de la base de datos
-    return db_character
+    db.refresh(db_character)  
 
 # Ruta para actualizar un personaje
 @app.put("/characters/{character_id}", response_model=schemas.CharacterData)

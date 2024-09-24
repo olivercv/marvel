@@ -5,8 +5,7 @@ class CharacterData(BaseModel):
     id: int
     name: str
     description: str
-    # Puedes agregar más campos según la documentación de la API de Marvel.
-
+   
 class MarvelCharacterResponse(BaseModel):
     offset: int
     limit: int
