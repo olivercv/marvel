@@ -1,6 +1,5 @@
 import time
 import httpx
-import requests
 import hashlib
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -14,7 +13,7 @@ import database
 app = FastAPI()
 
 # Crear la base de datos si no existe
-Character.metadata.create_all(bind=engine)
+models.Character.metadata.create_all(bind=engine)
 
 # Dependencia para obtener la sesión
 def get_db():
@@ -39,22 +38,22 @@ async def get_marvel_characters():
         response = await client.get(url)
         return response.json()
 
-@app.get("/characters")
+@app.get("/characters", response_model=schemas.MarvelCharacterResponse)
 async def get_characters():
     characters = await get_marvel_characters()
-    return characters
+    return schemas.MarvelCharacterResponse(**characters['data'])
 
-@app.post("/characters/", response_model=schemas.Character)  
-def create_character(character: schemas.Character, db: Session = Depends(get_db)):
-    db_character = models.Character(**character.dict()) 
+@app.post("/characters/", response_model=schemas.CharacterData)  # Asegúrate de que este esquema esté definido en schemas.py
+def create_character(character: schemas.CharacterData, db: Session = Depends(get_db)):
+    db_character = models.Character(**character.dict())  # Crear el modelo de SQLAlchemy
     db.add(db_character)
     db.commit()
-    db.refresh(db_character)
+    db.refresh(db_character)  # Refresca la instancia con los datos de la base de datos
     return db_character
 
 # Ruta para actualizar un personaje
-@app.put("/characters/{character_id}", response_model=schemas.Character)
-def update_character(character_id: int, character: schemas.Character, db: Session = Depends(get_db)):
+@app.put("/characters/{character_id}", response_model=schemas.CharacterData)
+def update_character(character_id: int, character: schemas.CharacterData, db: Session = Depends(get_db)):
     db_character = db.query(models.Character).filter(models.Character.id == character_id).first()
     
     if db_character is None:
@@ -68,7 +67,7 @@ def update_character(character_id: int, character: schemas.Character, db: Sessio
     return db_character
 
 # Ruta para eliminar un personaje
-@app.delete("/characters/{character_id}", response_model=schemas.Character)
+@app.delete("/characters/{character_id}", response_model=schemas.CharacterData)
 def delete_character(character_id: int, db: Session = Depends(get_db)):
     db_character = db.query(models.Character).filter(models.Character.id == character_id).first()
     
@@ -80,7 +79,7 @@ def delete_character(character_id: int, db: Session = Depends(get_db)):
     
     return db_character
 
-@app.get("/characters/{character_id}", response_model=schemas.Character)
+@app.get("/characters/{character_id}", response_model=schemas.CharacterData)
 def read_character(character_id: int, db: Session = Depends(get_db)):
     db_character = db.query(models.Character).filter(models.Character.id == character_id).first()
     if db_character is None:

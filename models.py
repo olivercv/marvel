@@ -9,6 +9,6 @@ class Character(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
+
     def __repr__(self):
         return f"<Character(name={self.name}, description={self.description})>"
-  
