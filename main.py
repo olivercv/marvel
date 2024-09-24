@@ -1,30 +1,32 @@
+import os
 import time
-import httpx
 import hashlib
+import httpx
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
-from typing import List
+
+from database import engine, SessionLocal
 from models import Character
-from database import SessionLocal, engine
-import models 
-import schemas
-import database
+from schemas import *
+from database import *
+
+load_dotenv()
 
 app = FastAPI()
 
-# Crear la base de datos si no existe
-models.Character.metadata.create_all(bind=engine)
-
-# Dependencia para obtener la sesión
 def get_db():
-    db = database.SessionLocal()
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-PUBLIC_KEY = "389603008f95a02eedbf037ed51fe418"
-PRIVATE_KEY = "41a995f35d3be6fe470420088a58c37f3ce66343"
+import models 
+import schemas 
+
+PUBLIC_KEY = os.environ["PUBLIC_KEY"]
+PRIVATE_KEY = os.environ["PRIVATE_KEY"]
 
 def generate_hash(ts, private_key, public_key):
     return hashlib.md5(f"{ts}{private_key}{public_key}".encode()).hexdigest()
